@@ -7,6 +7,8 @@ import numpy as np
 import tensorflow as tf
 from src import utils
 
+import matplotlib as plt
+
 
 box_size = 368
 hm_factor = 8
@@ -35,7 +37,7 @@ with tf.Session() as sess:
     # x_heatmap, y_heatmap, z_heatmap = model.x_heatmap, model.y_heatmap, model.z_heatmap
     # sess.run(tf.global_variables_initializer())
 
-    img = cv2.imread('./pic/asd.png')
+    img = cv2.imread('./pic/test_pic.jpg')
     img_square = utils.img_scale_squareify(img, box_size)
     img_square = img_square[np.newaxis, ...]
 
@@ -60,13 +62,18 @@ with tf.Session() as sess:
             zimg = np.hstack([zimg, tmp])
 
     all_hm = np.vstack([himg, ximg, yimg, zimg])
-    cv2.imshow('all heatmaps', all_hm*128)
+    #cv2.imshow('all heatmaps', all_hm*128)
+    i=plt.pyplot.imshow(all_hm*128)
+
+    plt.pyplot.show()
 
     img_res2d = utils.draw_limbs_2d(img_square[0, ...], joints_2d, limb_parents)
-    cv2.imshow('2D results', img_res2d)
+    #cv2.imshow('2D results', img_res2d)
+    im = plt.pyplot.imshow( img_res2d)
+    plt.pyplot.show()
 
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    #cv2.waitKey()
+    #cv2.destroyAllWindows()
 
 print(hm[0, :, :, 0])
 # np.savetxt('original', hm[0, :, :, 0])
