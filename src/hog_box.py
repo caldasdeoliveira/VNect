@@ -44,23 +44,27 @@ class HOGBox:
                 cv2.destroyWindow(self._box_init_window_name)
             return self.clicked, rect
         else:
-            min_width=800
-            image = imutils.resize(img, width=min(min_width, img.shape[1]))
+            max_width=800
+            #min_width=img.shape[1]
+            image = imutils.resize(img, width=min(max_width, W))
+            #image=img
             # detect people in the image
-            (rects, weights) = self.hog.detectMultiScale(image, winStride=(4, 4), padding=(8, 8), scale=1.01)
-
+            (rects, weights) = self.hog.detectMultiScale(image, winStride=(4, 4), padding=(8, 8), scale=0.1)
             rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
-            pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+            pick = non_max_suppression(rects, probs=weights, overlapThresh=0.65)
 
-            rect=[]
+            rect=[0, 0, W, H]
             
             for p in pick:
                 rect = [p[0],p[1],p[2]-p[0],p[3]-p[1]]
-                rect =[x * img.shape[1] // min(min_width, img.shape[1]) for x in rect]
+                rect =[x * W // min(max_width, W) for x in rect]
+                rect = self.cal_rect(rect, H, W) \
+                   if len(rects) else [0, 0, W, H]  # biggest area
                 # rect = self.cal_rect(found[np.argmax([found[i, 2] * found[i, 3] for i in range(len(found))])], H, W) \
                 # if len(found) else [0, 0, W, H]  # biggest area
                 # rect = self.cal_rect(found[np.argmax(w)], H, W) if len(found) else [0, 0, W, H]  # biggest weight
                 self.draw_rect(img, rect)
+                break
             scale = 400 / H
             img = cv2.resize(img, (0, 0), fx=scale, fy=scale)
             cv2.imshow(self._box_init_window_name, img)

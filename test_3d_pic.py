@@ -26,7 +26,7 @@ def joints_iter_gen():
 # the input camera serial number in the PC (int), or PATH to input video (str)
 # video = 0
 #video = './pic/test_video.mp4'
-img_path = './pic/D_7m_1.jpg'
+img_path = '../large_dataset/P_3m_1.jpg'
 #img_path = './pic/D_4m_5.jpg'
 # whether apply transposed matrix (when camera is flipped)
 # T = True
@@ -96,7 +96,7 @@ while success and cv2.waitKey(1) == -1:
     frame = np.transpose(frame, axes=[1, 0, 2]).copy() if T else frame
     print("x: " + str(x) + " y: " + str(y) + " w: " + str(w) + " h: " + str(h) )
     frame_cropped = frame[y:y + h, x:x + w, :]
-    print(frame.shape)
+    print(frame_cropped.shape)
     # vnect estimating process
     joints_2d, joints_3d = estimator(frame_cropped)
 
@@ -105,4 +105,6 @@ while success and cv2.waitKey(1) == -1:
     frame_square = utils.draw_limbs_2d(frame_square, joints_2d, joint_parents)
     cv2.imshow('2D Prediction', frame_square)
 
-print(joints_3d)
+    joints_2d_rescaled=[(round(temp[1]*frame_cropped.shape[0]/368)+x, round(temp[0]*frame_cropped.shape[0]/368)+y) for temp in joints_2d]
+    print(joints_2d)
+    print(joints_2d_rescaled)

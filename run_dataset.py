@@ -4,10 +4,12 @@
 import cv2
 import time
 import numpy as np
+import os
+import pandas as pd
 from src import utils
 from src.hog_box import HOGBox
 from src.estimator import VNectEstimator
-
+import pickle
 
 ##################
 ### Parameters ###
@@ -16,7 +18,11 @@ from src.estimator import VNectEstimator
 # video = 0
 #video = './pic/test_video.mp4'
 #img_path = './pic/D_4m_5.jpg'
-img_path = './pic/D_7m_1.jpg'
+
+img_dir = '../large_dataset'
+
+data = {}
+
 
 ## vnect params ##
 # vnect input image size
@@ -50,37 +56,45 @@ hog = HOGBox()
 ## click the mouse when ideal bounding box appears ##
 #success, frame = camera_capture.read()
 
-frame = cv2.imread(img_path)
+for img in os.listdir(img_dir):
+    img_path = os.path.join(img_dir,img)
 
-# initialize bounding box as the maximum rectangle
-rect = 0, 0, frame.shape[1], frame.shape[0]
+    frame = cv2.imread(img_path)
 
-_,rect = hog(frame, False)
-print('bounding box: ' + str(rect))
-# the final static bounding box params
-assert (rect), "No person detected"
-x, y, w, h = rect
+    # initialize bounding box as the maximum rectangle
+    rect = 0, 0, frame.shape[1], frame.shape[0]
+
+    _,rect = hog(frame, False)
+    # the final static bounding box params
+    assert (rect), "No person detected"
+    x, y, w, h = rect
 
 
-#################
-### Main Loop ###
-#################
-## trigger any keyboard events to stop the loop ##
+    #################
+    ### Main Loop ###
+    #################
+    ## trigger any keyboard events to stop the loop ##
 
-# start 3d skeletal animation plotting
-#utils.plot_3d_init(joint_parents, joints_iter_gen)
+    # start 3d skeletal animation plotting
+    #utils.plot_3d_init(joint_parents, joints_iter_gen)
 
-# crop bounding box from the raw frame
-frame_cropped = frame[y:y + h, x:x + w, :]
-# vnect estimating process
-joints_2d, joints_3d = estimator(frame_cropped)
+    # crop bounding box from the raw frame
+    frame_cropped = frame[y:y + h, x:x + w, :]
+    # vnect estimating process
+    joints_2d, joints_3d = estimator(frame_cropped)
 
-print('rect: ')
-print(rect)
+    joints_2d = [[round(i[1]*frame_cropped.shape[0]/box_size+x), round(i[0]*frame_cropped.shape[0]/box_size+y)] for i in joints_2d]
 
-print("joints 2D")
-print(joints_2d)
+    data[img] = joints_2d
 
-print("joints 3D")
-print(joints_3d)
+    print('rect')
+    print(rect)
 
+    print("joints 2D")
+    print(joints_2d)
+
+    print("joints 3D")
+    print(joints_3d)
+
+with open('data.pickle', 'wb') as f:
+    pickle.dump([data], f)
